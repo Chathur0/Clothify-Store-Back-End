@@ -9,5 +9,4 @@ import java.util.List;
 @Repository
 public interface CustomerRepository extends JpaRepository<CustomerEntity,Integer> {
     CustomerEntity findByEmailAndDelete(String email, int delete);
-
 }

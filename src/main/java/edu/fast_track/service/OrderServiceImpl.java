@@ -65,7 +65,7 @@ public class OrderServiceImpl implements OrderService {
             productDetailsList.add(new ProductDetails(
                     product.getName(),
                     product.getCategory(),
-                    product.getImage(),
+                    "http://localhost:8080/"+product.getImage(),
                     orderDetails.getQuantity(),
                     orderDetails.getPrice()
             ));

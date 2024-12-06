@@ -8,7 +8,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,12 +25,6 @@ import java.util.Optional;
 public class ProductServiceImpl implements ProductService {
     private final ObjectMapper mapper;
     private final ProductRepository productRepository;
-
-    @Override
-    @Transactional
-    public void addProduct(Product product) {
-        productRepository.save(new ProductEntity(product.getId(), product.getQty(), product.getName(), product.getDescription(), product.getPrice(), product.getImage().replace("\\", "/"), product.getCategory()));
-    }
 
     @Override
     public List<Product> getMensProducts() {
@@ -73,5 +72,23 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteProduct(Integer id) {
         productRepository.deleteById(id);
+    }
+
+    @Override
+    public void addProduct(Product product, MultipartFile image) throws IOException {
+        if (image != null && !image.isEmpty()) {
+            Path imagePath = Paths.get("uploads/product-images", System.currentTimeMillis() + "_" + image.getOriginalFilename());
+            image.transferTo(imagePath);
+            if (product.getImage() != null && !product.getImage().isEmpty()) {
+                File existingImage = new File(product.getImage().replace("http://localhost:8080/", ""));
+                if (existingImage.exists()) {
+                    existingImage.delete();
+                }
+            }
+            product.setImage(imagePath.toString());
+        } else {
+            product.setImage(product.getImage().replace("http://localhost:8080/", ""));
+        }
+        productRepository.save(new ProductEntity(product.getId(), product.getQty(), product.getName(), product.getDescription(), product.getPrice(), product.getImage().replace("\\", "/"), product.getCategory()));
     }
 }

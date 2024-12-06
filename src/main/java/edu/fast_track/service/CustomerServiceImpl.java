@@ -85,7 +85,6 @@ public class CustomerServiceImpl implements CustomerService {
             throw new CustomerExceptionHandler("User with this email already exists");
         }
         customerWithNewData.setPassword(savedCustomer.getPassword());
-        customerWithNewData.setDelete(savedCustomer.getDelete());
         if (image != null && !image.isEmpty()) {
             Path imagePath = Paths.get("uploads/profile-images", System.currentTimeMillis() + "_" + image.getOriginalFilename());
             image.transferTo(imagePath);
@@ -97,7 +96,11 @@ public class CustomerServiceImpl implements CustomerService {
             }
             customerWithNewData.setImage(imagePath.toString());
         } else {
-            customerWithNewData.setImage(customerWithNewData.getImage().replace("http://localhost:8080/", ""));
+            if (savedCustomer.getImage() != null){
+                customerWithNewData.setImage(customerWithNewData.getImage().replace("http://localhost:8080/", ""));
+            }else{
+                customerWithNewData.setImage(null);
+            }
         }
         repository.save(customerWithNewData);
     }

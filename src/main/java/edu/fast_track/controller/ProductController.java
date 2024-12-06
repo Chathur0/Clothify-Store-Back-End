@@ -37,13 +37,7 @@ public class ProductController {
         String token = authHeader.substring(7);
         try {
             jwtService.validateToken(token);
-            Product product = mapper.readValue(productJson, Product.class);
-            if (image != null && !image.isEmpty()) {
-                Path imagePath = Paths.get("uploads/product-images", System.currentTimeMillis() + "_" + image.getOriginalFilename());
-                image.transferTo(imagePath);
-                product.setImage(imagePath.toString());
-            }
-            service.addProduct(product);
+            service.addProduct(mapper.readValue(productJson, Product.class),image);
         } catch (ExpiredJwtException e) {
             return ResponseEntity.status(401).body(Map.of("error", "Token has expired"));
         } catch (JwtException e) {
@@ -89,22 +83,7 @@ public class ProductController {
         String token = authHeader.substring(7);
         try {
             jwtService.validateToken(token);
-            Product product = mapper.readValue(productJson, Product.class);
-            if (image != null && !image.isEmpty()) {
-                Path imagePath = Paths.get("uploads/product-images", System.currentTimeMillis() + "_" + image.getOriginalFilename());
-                image.transferTo(imagePath);
-                if (product.getImage() != null && !product.getImage().isEmpty()) {
-                    File existingImage = new File(product.getImage().replace("http://localhost:8080/", ""));
-                    if (existingImage.exists()) {
-                        existingImage.delete();
-                    }
-                }
-                product.setImage(imagePath.toString());
-            } else {
-                product.setImage(product.getImage().replace("http://localhost:8080/", ""));
-            }
-            service.addProduct(product);
-
+            service.addProduct(mapper.readValue(productJson, Product.class),image);
         } catch (
                 ExpiredJwtException e) {
             return ResponseEntity.status(401).body(Map.of("error", "Token has expired"));
