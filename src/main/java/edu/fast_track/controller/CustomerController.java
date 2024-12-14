@@ -135,7 +135,16 @@ public class CustomerController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
         }
-
     }
+    
+    @PostMapping("login-via-social-media")
+    public ResponseEntity<?> loginViaSocialMedia(@RequestBody Customer customer) {
+        try{
+            return ResponseEntity.ok(userService.loginViaSocialMedia(customer));
+        }catch (RuntimeException e){
+            return ResponseEntity.status(406).body(e.getMessage());
+        }
+    }
+
 }
 

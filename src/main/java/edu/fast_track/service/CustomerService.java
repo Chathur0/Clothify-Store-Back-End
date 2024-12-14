@@ -22,4 +22,6 @@ public interface CustomerService {
     void updateCustomer(CustomerDetails customer, MultipartFile image) throws IOException;
 
     void addUser(String userJson, MultipartFile profileImage) throws IOException;
+
+    String loginViaSocialMedia(Customer customer);
 }

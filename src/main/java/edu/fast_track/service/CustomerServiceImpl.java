@@ -36,7 +36,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public String validateUser(Customer customer) {
-        CustomerEntity customerEntity = repository.findByEmailAndDelete(customer.getEmail(),0);
+        CustomerEntity customerEntity = repository.findByEmailAndDelete(customer.getEmail(), 0);
         if (customerEntity == null) {
             throw new CustomerExceptionHandler("User not found");
         }
@@ -48,7 +48,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public String getRole(String token) {
-        CustomerEntity customer = repository.findByEmailAndDelete(jwtService.extractEmail(token),0);
+        CustomerEntity customer = repository.findByEmailAndDelete(jwtService.extractEmail(token), 0);
         if (customer == null) {
             throw new CustomerExceptionHandler("User not found");
         }
@@ -57,16 +57,30 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDetails getUser(String token) {
-        CustomerDetails customer = mapper.convertValue(repository.findByEmailAndDelete(jwtService.extractEmail(token),0), CustomerDetails.class);
+        CustomerDetails customer = mapper.convertValue(repository.findByEmailAndDelete(jwtService.extractEmail(token), 0), CustomerDetails.class);
         String image = customer.getImage();
-        customer.setImage(image != null ? "http://localhost:8080/" + image.replace("\\", "/") : "");
+        if (image != null) {
+            if (!image.startsWith("uploads\\profile-images\\")) {
+                customer.setImage(image);
+            } else {
+                customer.setImage("http://localhost:8080/" + image.replace("\\", "/"));
+            }
+        } else {
+            customer.setImage("");
+        }
         return customer;
     }
 
     @Override
     public String getProfileImage(String token) {
-        String image = repository.findByEmailAndDelete(jwtService.extractEmail(token),0).getImage();
-        return image != null ? "http://localhost:8080/" + image.replace("\\", "/") : "";
+        String image = repository.findByEmailAndDelete(jwtService.extractEmail(token), 0).getImage();
+        if (image != null) {
+            if (!image.startsWith("uploads\\profile-images\\")) {
+                return image;
+            }
+            return "http://localhost:8080/" + image.replace("\\", "/");
+        }
+        return "";
     }
 
     @Override
@@ -81,7 +95,7 @@ public class CustomerServiceImpl implements CustomerService {
         CustomerEntity savedCustomer = mapper.convertValue(repository.findById(customer.getId()), CustomerEntity.class);
         CustomerEntity customerWithNewData = mapper.convertValue(customer, CustomerEntity.class);
 
-        if (!savedCustomer.getEmail().equalsIgnoreCase(customer.getEmail()) && repository.findByEmailAndDelete(customer.getEmail(),0) != null) {
+        if (!savedCustomer.getEmail().equalsIgnoreCase(customer.getEmail()) && repository.findByEmailAndDelete(customer.getEmail(), 0) != null) {
             throw new CustomerExceptionHandler("User with this email already exists");
         }
         customerWithNewData.setPassword(savedCustomer.getPassword());
@@ -96,9 +110,13 @@ public class CustomerServiceImpl implements CustomerService {
             }
             customerWithNewData.setImage(imagePath.toString());
         } else {
-            if (savedCustomer.getImage() != null){
-                customerWithNewData.setImage(customerWithNewData.getImage().replace("http://localhost:8080/", ""));
-            }else{
+            if (savedCustomer.getImage() != null) {
+                if (savedCustomer.getImage().startsWith("http://localhost:8080/")) {
+                    customerWithNewData.setImage(customerWithNewData.getImage().replace("http://localhost:8080/", ""));
+                }else{
+                    customerWithNewData.setImage(savedCustomer.getImage());
+                }
+            } else {
                 customerWithNewData.setImage(null);
             }
         }
@@ -108,7 +126,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public void addUser(String userJson, MultipartFile profileImage) throws IOException {
         Customer user = mapper.readValue(userJson, Customer.class);
-        if (repository.findByEmailAndDelete(user.getEmail(),0) != null){
+        if (repository.findByEmailAndDelete(user.getEmail(), 0) != null) {
             throw new CustomerExceptionHandler("User with this email already exists");
         }
         if (profileImage != null && !profileImage.isEmpty()) {
@@ -118,6 +136,18 @@ public class CustomerServiceImpl implements CustomerService {
         }
         user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
         repository.save(mapper.convertValue(user, CustomerEntity.class));
+    }
+
+    @Override
+    public String loginViaSocialMedia(Customer customer) {
+        if (customer.getEmail() == null) {
+            throw new CustomerExceptionHandler("Login failed");
+        }
+        CustomerEntity byEmailAndDelete = repository.findByEmailAndDelete(customer.getEmail(), 0);
+        if (byEmailAndDelete != null) {
+            return generateJwtToken(byEmailAndDelete);
+        }
+        return generateJwtToken(repository.save(mapper.convertValue(customer, CustomerEntity.class)));
     }
 
     private String generateJwtToken(CustomerEntity customerEntity) {
