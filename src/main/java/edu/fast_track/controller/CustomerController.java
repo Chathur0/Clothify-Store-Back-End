@@ -28,24 +28,26 @@ public class CustomerController {
     @PostMapping("/add-customer")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> addUser(@RequestParam("customer") String userJson,
-                        @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
+                                     @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
         try {
-            userService.addUser(userJson,profileImage);
+            userService.addUser(userJson, profileImage);
             return ResponseEntity.ok("User added successfully");
         } catch (JsonProcessingException e) {
             return ResponseEntity.status(500).body("Error parsing user JSON");
         } catch (IOException e) {
             return ResponseEntity.status(500).body("Error occurred when image upload");
-        } catch (CustomerExceptionHandler e){
+        } catch (CustomerExceptionHandler e) {
             return ResponseEntity.status(406).body(e.getMessage());
         }
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Customer customer) {
-        try{
+        try {
             return ResponseEntity.ok(userService.validateUser(customer));
-        }catch (RuntimeException e){
+        } catch (CustomerExceptionHandler e) {
+            return ResponseEntity.status(500).body(e.getMessage());
+        } catch (RuntimeException e) {
             return ResponseEntity.status(406).body(e.getMessage());
         }
     }
@@ -89,7 +91,7 @@ public class CustomerController {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid token"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(500).body(Map.of("error", "Invalid user email"));
-        }catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
         }
 
@@ -105,7 +107,7 @@ public class CustomerController {
         String token = authHeader.substring(7);
         try {
             jwtService.validateToken(token);
-            userService.updateCustomer(mapper.readValue(customerJson, CustomerDetails.class),image);
+            userService.updateCustomer(mapper.readValue(customerJson, CustomerDetails.class), image);
             return ResponseEntity.status(200).body("Customer Updated");
         } catch (ExpiredJwtException e) {
             return ResponseEntity.status(401).body(Map.of("error", "Token has expired"));
@@ -113,8 +115,8 @@ public class CustomerController {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid token"));
         } catch (CustomerExceptionHandler e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage() + "Internal server error"));
         }
     }
 
@@ -136,12 +138,12 @@ public class CustomerController {
             return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
         }
     }
-    
+
     @PostMapping("login-via-social-media")
     public ResponseEntity<?> loginViaSocialMedia(@RequestBody Customer customer) {
-        try{
+        try {
             return ResponseEntity.ok(userService.loginViaSocialMedia(customer));
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             return ResponseEntity.status(406).body(e.getMessage());
         }
     }

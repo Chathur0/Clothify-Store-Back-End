@@ -19,7 +19,7 @@ public interface CustomerService {
 
     void deleteCustomer(int id);
 
-    void updateCustomer(CustomerDetails customer, MultipartFile image) throws IOException;
+    void updateCustomer(CustomerDetails customer, MultipartFile image) throws Exception;
 
     void addUser(String userJson, MultipartFile profileImage) throws IOException;
 

@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3307/clothify_store
-    username: root
-    password: 12345
+    url: jdbc:postgresql://ep-lucky-band-a1wgjt8s.ap-southeast-1.aws.neon.tech/clothify_store
+    username: clothify_store_owner
+    password: t1owbnX8FJGK
 
   jpa:
     hibernate:
