@@ -32,7 +32,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<Product> getProductsByCategory(int category, int page) {
-        return productRepository.findByCategory(category, PageRequest.of(page, 30)).map(productEntity -> mapper.convertValue(productEntity, Product.class));
+        return productRepository.findByCategory(category, PageRequest.of(page, 28)).map(productEntity -> mapper.convertValue(productEntity, Product.class));
     }
 
     @Override
