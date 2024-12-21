@@ -7,6 +7,8 @@ import edu.fast_track.exception.CustomerExceptionHandler;
 import edu.fast_track.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,39 +31,8 @@ public class ProductServiceImpl implements ProductService {
     private final ImageService imageService;
 
     @Override
-    public List<Product> getMensProducts() {
-        List<Product> products = new ArrayList<>();
-        for (ProductEntity product : productRepository.findByCategory(1)) {
-            products.add(mapper.convertValue(product, Product.class));
-        }
-        return products;
-    }
-
-    @Override
-    public List<Product> getWomenProducts() {
-        List<Product> products = new ArrayList<>();
-        for (ProductEntity product : productRepository.findByCategory(2)) {
-            products.add(mapper.convertValue(product, Product.class));
-        }
-        return products;
-    }
-
-    @Override
-    public List<Product> getKidsProducts() {
-        List<Product> products = new ArrayList<>();
-        for (ProductEntity product : productRepository.findByCategory(3)) {
-            products.add(mapper.convertValue(product, Product.class));
-        }
-        return products;
-    }
-
-    @Override
-    public List<Product> getBabyProducts() {
-        List<Product> products = new ArrayList<>();
-        for (ProductEntity product : productRepository.findByCategory(4)) {
-            products.add(mapper.convertValue(product, Product.class));
-        }
-        return products;
+    public Page<Product> getProductsByCategory(int category, int page) {
+        return productRepository.findByCategory(category, PageRequest.of(page, 30)).map(productEntity -> mapper.convertValue(productEntity, Product.class));
     }
 
     @Override
@@ -81,8 +52,6 @@ public class ProductServiceImpl implements ProductService {
                 throw new CustomerExceptionHandler("Failed to delete previous image");
             }
             product.setImage(imageService.uploadProduct(image));
-        } else {
-            product.setImage(product.getImage().replace("http://localhost:8080/", ""));
         }
         productRepository.save(mapper.convertValue(product, ProductEntity.class));
     }
